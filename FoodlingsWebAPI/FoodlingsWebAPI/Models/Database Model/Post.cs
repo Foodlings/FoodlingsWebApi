@@ -1,0 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace FoodlingsWebAPI.Models.Database_Model
+{
+    public class Post
+    {
+        public int PostID { get; set; }
+        public int SubscriberID { get; set; }
+        public int ImagePresence { get; set; }
+        public int ImageAlbumID { get; set; }
+        public int ReviewPresence { get; set; }
+        public int CheckinPresence { get; set; }
+        public string Privacy { get; set; }
+        public string TimeStamp { get; set; }
+        public string PostDescription { get; set; }
+    }
+}
