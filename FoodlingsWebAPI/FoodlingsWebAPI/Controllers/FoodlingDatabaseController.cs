@@ -62,7 +62,7 @@ namespace FoodlingsWebAPI.Controllers
 
 
         [HttpGet]
-        public IHttpActionResult getSubscriber(string SubscriberName)
+        public IHttpActionResult getSubscriber(string SubscriberName, string SubscriberEmail)
         {
             try
             {
@@ -70,7 +70,16 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "SELECT * FROM subscriber WHERE SubscriberName = '" + SubscriberName + "'";
+                string Query = null;
+
+                if(!SubscriberName.Equals("EmailNone"))
+                {
+                    Query = "SELECT * FROM subscriber WHERE SubscriberName = '" + SubscriberName + "'";
+                }
+                else if(!SubscriberEmail.Equals("Name"))
+                {
+                    Query = "SELECT * FROM subscriber WHERE EmailAddress = '" + SubscriberEmail + "'";
+                }
 
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
 
