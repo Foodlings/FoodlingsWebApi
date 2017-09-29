@@ -16,5 +16,7 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public string Privacy { get; set; }
         public string TimeStamp { get; set; }
         public string PostDescription { get; set; }
+
+        public string ImageString { get; set; }
     }
 }

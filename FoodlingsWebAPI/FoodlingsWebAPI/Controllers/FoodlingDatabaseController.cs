@@ -12,16 +12,15 @@ namespace FoodlingsWebAPI.Controllers
     public class FoodlingDatabaseController : ApiController
     {
 
-        string ConnectionString = "Database=acsm_5ef0b0e6a67e8cb;Data Source=ap-cdbr-azure-east-a.cloudapp.net;User Id=b5b082fd287046;Password=f6f10d0c";
+        string ConnectionString = "Database=heroku_f5604cdba7afdb8;Data Source=us-cdbr-iron-east-03.cleardb.net;User Id=b6a09ce98741f6;Password=b94e7509";
 
 
+                // ======================================= Tables CRUD Operations ======================================
 
-        // ======================================= Tables CRUD Operations ======================================
 
-
-        // Subscriber Table - CRUD Operations
+                // Subscriber Table - CRUD Operations
         [HttpPost]
-        public IHttpActionResult createSubscriber(int ID, string SubscriberName, string Password, string Type, string Email, int DisplayPictureID, string PhoneNumber, string Bio, string Gender, string DoB)
+        public IHttpActionResult createSubscriber(string SubscriberName, string Password, string Type, string Email, int DisplayPictureID, string PhoneNumber, string Bio, string Gender, string DoB)
         {
             try
             {
@@ -29,7 +28,7 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "INSERT INTO subscriber VALUES(" + ID + ",'" + SubscriberName + "'" + ",'" + Password + "'" + ",'" + Type + "'" + ",'" + Email + "'" + "," + DisplayPictureID + ",'" + PhoneNumber + "'" + ",'" + Bio + "'" + ",'" + Gender + "'" + ",'" + DoB + "')";
+                string Query = "INSERT INTO subscriber(SubscriberName,Password,Type,EmailAddress,DisplayPictureID,PhoneNumber,Bio,Gender,DoB) VALUES('" + SubscriberName + "'" + ",'" + Password + "'" + ",'" + Type + "'" + ",'" + Email + "'" + "," + DisplayPictureID + ",'" + PhoneNumber + "'" + ",'" + Bio + "'" + ",'" + Gender + "'" + ",'" + DoB + "')";
 
                 MySqlCommand insertCommand = new MySqlCommand(Query, Connection);
 
@@ -38,7 +37,6 @@ namespace FoodlingsWebAPI.Controllers
                 Connection.Close();
 
                 Subscriber addedSubscriber = new Subscriber();
-                addedSubscriber.SubscriberID = ID;
                 addedSubscriber.SubscriberName = SubscriberName;
                 addedSubscriber.Password = Password;
                 addedSubscriber.Type = Type;
@@ -84,6 +82,105 @@ namespace FoodlingsWebAPI.Controllers
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
 
 
+                Subscriber retrievedSubscriber = new Subscriber();
+
+                using (MySqlDataReader Reader = getCommand.ExecuteReader())
+                {
+                    if (Reader.HasRows && Reader.Read())
+                    {
+                        int counter = 1;
+
+                        for (int i = 0; i < Reader.FieldCount; i++)
+                        {
+                            if (counter == 1)
+                            { retrievedSubscriber.SubscriberID = (int)Reader.GetValue(i); }
+                            else if (counter == 2)
+                            { retrievedSubscriber.SubscriberName = (string)Reader.GetValue(i); }
+                            else if (counter == 3)
+                            { retrievedSubscriber.Password = (string)Reader.GetValue(i); }
+                            else if (counter == 4)
+                            { retrievedSubscriber.Type = (string)Reader.GetValue(i); }
+                            else if (counter == 5)
+                            { retrievedSubscriber.Email = (string)Reader.GetValue(i); }
+                            else if (counter == 6)
+                            { retrievedSubscriber.DisplayPictureID = (int)Reader.GetValue(i); }
+                            else if (counter == 7)
+                            { retrievedSubscriber.PhoneNumber = (String)Reader.GetValue(i); }
+                            else if (counter == 8)
+                            { retrievedSubscriber.Bio = (string)Reader.GetValue(i); }
+                            else if (counter == 9)
+                            { retrievedSubscriber.Gender = (string)Reader.GetValue(i); }
+                            else if (counter == 10)
+                            { retrievedSubscriber.DoB = (string)Reader.GetValue(i); }
+
+                            counter++;
+                        }
+                    }
+                }
+
+
+                List<Subscriber> list = new List<Subscriber>();
+                list.Add(retrievedSubscriber);
+
+                Connection.Close();
+
+                return Ok(new { Subscriber = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+
+            return null;
+        }
+
+        [HttpPost]
+        public IHttpActionResult createDisplayPicture([FromBody] Subscriber subscriber)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+
+                Connection.Open();
+
+                string Query;
+
+                if (!subscriber.DisplayPicture.Equals("CoverPhoto"))
+                {
+                    Query = "update subscriber set DisplayPicture='" + subscriber.DisplayPicture + "' where SubscriberID=" + subscriber.SubscriberID;
+                }
+                else
+                {
+                    Query = "update subscriber set CoverPhoto='" + subscriber.CoverPhoto + "' where SubscriberID=" + subscriber.SubscriberID;
+                }
+
+                MySqlCommand insertCommand = new MySqlCommand(Query, Connection);
+
+                insertCommand.ExecuteNonQuery();
+
+                Connection.Close();
+
+                Subscriber addedSubscriber = subscriber;
+
+                List<Subscriber> list = new List<Subscriber>();
+                list.Add(addedSubscriber);
+
+                return Ok(new { Subscriber = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+            return null;
+        }
+
+        [HttpGet]
+        public IHttpActionResult getSubscriber(string SubscriberID)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = "SELECT * FROM subscriber WHERE SubscriberID = " + SubscriberID;
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
                 Subscriber retrievedSubscriber = new Subscriber();
 
                 using (MySqlDataReader Reader = getCommand.ExecuteReader())
@@ -680,9 +777,10 @@ namespace FoodlingsWebAPI.Controllers
 
 
 
-        // Post Table - CRUD Operations
-        [HttpPost]
-        public IHttpActionResult createPost(int ID, int SubscriberID, int ImagePresence, int ImageAlbumID, int ReviewPresence, int CheckinPresence, string Privacy, string Timestamp, string PostDescription)
+        //Post Table - CRUD Operations
+
+       [HttpPost]
+        public IHttpActionResult createPost([FromBody] Post post)
         {
             try
             {
@@ -690,7 +788,25 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "INSERT INTO post VALUES(" + ID + "," + SubscriberID + "," + ImagePresence + "," + ImageAlbumID +  "," + ReviewPresence + "," + CheckinPresence + ",'" + Privacy + "'" + ",'" + Timestamp + "'" + ",'" + PostDescription + "')";
+                string Query = "INSERT INTO post(PostID, SubscriberID, ImagePresence, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString) VALUES(" + Convert.ToInt32(post.PostID) + "," + Convert.ToInt32(post.SubscriberID) + "," + Convert.ToInt32(post.ImagePresence) + "," + Convert.ToInt32(post.ReviewPresence) + "," + Convert.ToInt32(post.CheckinPresence) + ",'" + post.Privacy + "','" + post.TimeStamp + "'" + ",'" + post.PostDescription + "','" + post.ImageString + "')";
+
+                //if ((post.ImageAlbumID.Equals("1000")) && (post.ImageString.Equals("none")))
+                //{
+                //    Query = "INSERT INTO post(PostID, SubscriberID, ImagePresence, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription) VALUES(" + post.PostID + "," + post.SubscriberID + "," + post.ImagePresence + "," + post.ReviewPresence + "," + post.CheckinPresence + ",'" + post.Privacy + "'" + ",'" + post.TimeStamp + "'" + ",'" + post.PostDescription + "')";
+                //}
+                //else if ((post.ImageAlbumID.Equals("1000")) && !(post.ImageString.Equals("none")))
+                //{
+                //    Query = "INSERT INTO post(PostID, SubscriberID, ImagePresence, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString) VALUES('" + post.PostID + "','" + post.SubscriberID + "','" + post.ImagePresence + "','" + post.ReviewPresence + "','" + post.CheckinPresence + "','Private'" + ",'" + post.TimeStamp + "'" + ",'" + post.PostDescription + "'" + ",'" + post.ImageString + "')";
+                //}
+                //else if (!(post.ImageAlbumID.Equals("1000")) && (post.ImageString.Equals("none")))
+                //{
+                //    Query = "INSERT INTO post(PostID, SubscriberID, ImagePresence, ImageAlbumID, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription) VALUES(" + post.PostID + "," + post.SubscriberID + "," + post.ImagePresence + "," + post.ImageAlbumID + "," + post.ReviewPresence + "," + post.CheckinPresence + ",'" + post.Privacy + "'" + ",'" + post.TimeStamp + "'" + ",'" + post.PostDescription + "')";
+                //}
+                //else
+                //{ 
+                //    Query = "INSERT INTO post VALUES(" + post.PostID + "," + post.SubscriberID + "," + post.ImagePresence + "," + post.ImageAlbumID + "," + post.ReviewPresence + "," + post.CheckinPresence + ",'" + post.Privacy + "'" + ",'" + post.TimeStamp + "'" + ",'" + post.PostDescription + "'" + ",'" + post.ImageString + "')";
+                //}
+
 
                 MySqlCommand insertCommand = new MySqlCommand(Query, Connection);
 
@@ -698,16 +814,7 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Close();
 
-                Post addedPost = new Post();
-                addedPost.PostID = ID;
-                addedPost.SubscriberID = SubscriberID;
-                addedPost.ImagePresence = ImagePresence;
-                addedPost.ImageAlbumID = ImageAlbumID;
-                addedPost.ReviewPresence = ReviewPresence;
-                addedPost.CheckinPresence = CheckinPresence;
-                addedPost.Privacy = Privacy;
-                addedPost.TimeStamp = Timestamp;
-                addedPost.PostDescription = PostDescription;
+                Post addedPost = post;
 
                 List<Post> list = new List<Post>();
                 list.Add(addedPost);
@@ -721,8 +828,91 @@ namespace FoodlingsWebAPI.Controllers
         }
 
 
+        //[HttpGet]
+        //public IHttpActionResult getPost(int ID)
+        //{
+        //    try
+        //    {
+        //        MySqlConnection Connection = new MySqlConnection(ConnectionString);
+
+        //        Connection.Open();
+
+        //        string Query = "SELECT * FROM post WHERE PostID = " + ID;
+
+        //        MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+
+        //        Post retrievedPost = new Post();
+
+        //        using (MySqlDataReader Reader = getCommand.ExecuteReader())
+        //        {
+        //            if (Reader.HasRows && Reader.Read())
+        //            {
+        //                int counter = 1;
+
+        //                for (int i = 0; i < Reader.FieldCount; i++)
+        //                {
+        //                    if (counter == 1)
+        //                    { retrievedPost.PostID = (int)Reader.GetValue(i); }
+        //                    else if (counter == 2)
+        //                    { retrievedPost.SubscriberID = (int)Reader.GetValue(i); }
+        //                    else if (counter == 3)
+        //                    { retrievedPost.ImagePresence = (int)Reader.GetValue(i); }
+        //                    else if (counter == 4)
+        //                    {
+        //                        try
+        //                        {
+        //                            retrievedPost.ImageAlbumID = (int)Reader.GetValue(i);
+        //                        }
+        //                        catch (Exception e)
+        //                        {
+        //                            retrievedPost.ImageAlbumID = 1000;
+        //                        }
+        //                    }
+        //                    else if (counter == 5)
+        //                    { retrievedPost.ReviewPresence = (int)Reader.GetValue(i); }
+        //                    else if (counter == 6)
+        //                    { retrievedPost.CheckinPresence = (int)Reader.GetValue(i); }
+        //                    else if (counter == 7)
+        //                    { retrievedPost.Privacy = (string)Reader.GetValue(i); }
+        //                    else if (counter == 8)
+        //                    { retrievedPost.TimeStamp = (string)Reader.GetValue(i); }
+        //                    else if (counter == 9)
+        //                    { retrievedPost.PostDescription = (string)Reader.GetValue(i); }
+        //                    else if (counter == 10)
+        //                    {
+        //                        try
+        //                        {
+        //                            retrievedPost.ImageString = (String)Reader.GetValue(i);
+        //                        }
+        //                        catch (Exception e)
+        //                        {
+        //                            retrievedPost.ImageString = "";
+        //                        }
+        //                    }
+
+        //                    counter++;
+        //                }
+        //            }
+        //        }
+
+
+        //        List<Post> list = new List<Post>();
+        //        list.Add(retrievedPost);
+
+        //        Connection.Close();
+
+        //        return Ok(new { Post = list.AsEnumerable().ToList() });
+        //    }
+        //    catch (Exception ex)
+        //    { }
+
+
+        //    return null;
+        //}
+
+
         [HttpGet]
-        public IHttpActionResult getPost(int ID)
+        public IHttpActionResult getAllPosts()
         {
             try
             {
@@ -730,70 +920,7 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "SELECT * FROM post WHERE PostID = " + ID;
-
-                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
-
-                Post retrievedPost = new Post();
-
-                using (MySqlDataReader Reader = getCommand.ExecuteReader())
-                {
-                    if (Reader.HasRows && Reader.Read())
-                    {
-                        int counter = 1;
-
-                        for (int i = 0; i < Reader.FieldCount; i++)
-                        {
-                            if (counter == 1)
-                            { retrievedPost.PostID = (int)Reader.GetValue(i); }
-                            else if (counter == 2)
-                            { retrievedPost.SubscriberID = (int)Reader.GetValue(i); }
-                            else if (counter == 3)
-                            { retrievedPost.ImagePresence = (int)Reader.GetValue(i); }
-                            else if (counter == 4)
-                            { retrievedPost.ImageAlbumID = (int)Reader.GetValue(i); }
-                            else if (counter == 5)
-                            { retrievedPost.ReviewPresence = (int)Reader.GetValue(i); }
-                            else if (counter == 6)
-                            { retrievedPost.CheckinPresence = (int)Reader.GetValue(i); }
-                            else if (counter == 7)
-                            { retrievedPost.Privacy = (string)Reader.GetValue(i); }
-                            else if (counter == 8)
-                            { retrievedPost.TimeStamp = (string)Reader.GetValue(i); }
-                            else if (counter == 9)
-                            { retrievedPost.PostDescription = (string)Reader.GetValue(i); }
-
-                            counter++;
-                        }
-                    }
-                }
-
-
-                List<Post> list = new List<Post>();
-                list.Add(retrievedPost);
-
-                Connection.Close();
-
-                return Ok(new { Post = list.AsEnumerable().ToList() });
-            }
-            catch (Exception ex)
-            { }
-
-
-            return null;
-        }
-
-
-        [HttpGet]
-        public IHttpActionResult getAllPosts(int ID)
-        {
-            try
-            {
-                MySqlConnection Connection = new MySqlConnection(ConnectionString);
-
-                Connection.Open();
-
-                string Query = "SELECT * FROM post WHERE SubscriberID = " + ID;
+                string Query = "SELECT * FROM post";
 
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
 
@@ -810,12 +937,30 @@ namespace FoodlingsWebAPI.Controllers
                         retrievedPost.PostID = (int)SelectReader.GetValue(0);
                         retrievedPost.SubscriberID = (int)SelectReader.GetValue(1);
                         retrievedPost.ImagePresence = (int)SelectReader.GetValue(2);
-                        retrievedPost.ImageAlbumID = (int)SelectReader.GetValue(3);
+
+                        try
+                        {
+                            retrievedPost.ImageAlbumID = (int)SelectReader.GetValue(3);
+                        }
+                        catch (Exception e)
+                        {
+                            retrievedPost.ImageAlbumID = 1000;
+                        }
+
                         retrievedPost.ReviewPresence = (int)SelectReader.GetValue(4);
                         retrievedPost.CheckinPresence = (int)SelectReader.GetValue(5);
                         retrievedPost.Privacy = (string)SelectReader.GetValue(6);
                         retrievedPost.TimeStamp = (string)SelectReader.GetValue(7);
                         retrievedPost.PostDescription = (string)SelectReader.GetValue(8);
+
+                        try
+                        {
+                            retrievedPost.ImageString = (string)SelectReader.GetValue(9);
+                        }
+                        catch (Exception e)
+                        {
+                            retrievedPost.ImageString = "";
+                        }
 
                         list.Add(retrievedPost);
 
@@ -833,76 +978,143 @@ namespace FoodlingsWebAPI.Controllers
             return null;
         }
 
+        //[HttpGet]
+        //public IHttpActionResult getAllPosts(int ID)
+        //{
+        //    try
+        //    {
+        //        MySqlConnection Connection = new MySqlConnection(ConnectionString);
 
-        [HttpPost]
-        public IHttpActionResult updatePost(int ID, int SubscriberID, int ImagePresence, int ImageAlbumID, int ReviewPresence, int CheckinPresence, string Privacy, string Timestamp, string PostDescription)
-        {
-            try
-            {
-                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+        //        Connection.Open();
 
-                Connection.Open();
+        //        string Query = "SELECT * FROM post WHERE SubscriberID = " + ID;
 
-                string Query = "UPDATE post SET SubscriberID=" + SubscriberID + ", ImagePresence=" + ImagePresence + ", ReviewPresence=" + ReviewPresence + ", CheckinPresence=" + CheckinPresence + ", Privacy='" + Privacy + ", Timestamp='" + Timestamp + ", PostDescription='" + PostDescription + "'" + " WHERE PostID=" + ID;
+        //        MySqlCommand getCommand = new MySqlCommand(Query, Connection);
 
-                MySqlCommand updateCommand = new MySqlCommand(Query, Connection);
+        //        List<Post> list = new List<Post>();
 
-                updateCommand.ExecuteNonQuery();
+        //        Post retrievedPost = new Post();
 
-                Connection.Close();
+        //        MySqlDataReader SelectReader = getCommand.ExecuteReader();
 
-                Post updatedPost = new Post();
-                updatedPost.SubscriberID = SubscriberID;
-                updatedPost.ImagePresence = ImagePresence;
-                updatedPost.ImageAlbumID = ImageAlbumID;
-                updatedPost.ReviewPresence = ReviewPresence;
-                updatedPost.CheckinPresence = CheckinPresence;
-                updatedPost.Privacy = Privacy;
-                updatedPost.TimeStamp = Timestamp;
-                updatedPost.PostDescription = PostDescription;
+        //        while (SelectReader.Read())
+        //        {
+        //            if (SelectReader.HasRows)
+        //            {
+        //                retrievedPost.PostID = (int)SelectReader.GetValue(0);
+        //                retrievedPost.SubscriberID = (int)SelectReader.GetValue(1);
+        //                retrievedPost.ImagePresence = (int)SelectReader.GetValue(2);
 
-                List<Post> list = new List<Post>();
-                list.Add(updatedPost);
+        //                try
+        //                {
+        //                    retrievedPost.ImageAlbumID = (int)SelectReader.GetValue(3);
+        //                }
+        //                catch (Exception e)
+        //                {
+        //                    retrievedPost.ImageAlbumID = 1000;
+        //                }
 
-                return Ok(new { Post = list.AsEnumerable().ToList() });
-            }
-            catch (Exception ex)
-            { }
+        //                retrievedPost.ReviewPresence = (int)SelectReader.GetValue(4);
+        //                retrievedPost.CheckinPresence = (int)SelectReader.GetValue(5);
+        //                retrievedPost.Privacy = (string)SelectReader.GetValue(6);
+        //                retrievedPost.TimeStamp = (string)SelectReader.GetValue(7);
+        //                retrievedPost.PostDescription = (string)SelectReader.GetValue(8);
 
-            return null;
-        }
+        //                try
+        //                {
+        //                    retrievedPost.ImageString = (string)SelectReader.GetValue(9);
+        //                }
+        //                catch (Exception e)
+        //                {
+        //                    retrievedPost.ImageString = "";
+        //                }
+
+        //                list.Add(retrievedPost);
+
+        //                retrievedPost = new Post();
+        //            }
+        //        }
+
+        //        Connection.Close();
+
+        //        return Ok(new { Post = list.AsEnumerable().ToList() });
+        //    }
+        //    catch (Exception ex)
+        //    { }
+
+        //    return null;
+        //}
 
 
-        [HttpPost]
-        public IHttpActionResult deletePost(int ID)
-        {
-            try
-            {
-                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+        //[HttpPost]
+        //public IHttpActionResult updatePost(int ID, int SubscriberID, int ImagePresence, int ImageAlbumID, int ReviewPresence, int CheckinPresence, string Privacy, string Timestamp, string PostDescription)
+        //{
+        //    try
+        //    {
+        //        MySqlConnection Connection = new MySqlConnection(ConnectionString);
 
-                Connection.Open();
+        //        Connection.Open();
 
-                string Query = "DELETE FROM post WHERE PostID=" + ID;
+        //        string Query = "UPDATE post SET SubscriberID=" + SubscriberID + ", ImagePresence=" + ImagePresence + ", ReviewPresence=" + ReviewPresence + ", CheckinPresence=" + CheckinPresence + ", Privacy='" + Privacy + ", Timestamp='" + Timestamp + ", PostDescription='" + PostDescription + "'" + " WHERE PostID=" + ID;
 
-                MySqlCommand deleteCommand = new MySqlCommand(Query, Connection);
+        //        MySqlCommand updateCommand = new MySqlCommand(Query, Connection);
 
-                deleteCommand.ExecuteNonQuery();
+        //        updateCommand.ExecuteNonQuery();
 
-                Connection.Close();
+        //        Connection.Close();
 
-                Post deletedPost = new Post();
-                deletedPost.PostID = ID;
+        //        Post updatedPost = new Post();
+        //        updatedPost.SubscriberID = SubscriberID;
+        //        updatedPost.ImagePresence = ImagePresence;
+        //        updatedPost.ImageAlbumID = ImageAlbumID;
+        //        updatedPost.ReviewPresence = ReviewPresence;
+        //        updatedPost.CheckinPresence = CheckinPresence;
+        //        updatedPost.Privacy = Privacy;
+        //        updatedPost.TimeStamp = Timestamp;
+        //        updatedPost.PostDescription = PostDescription;
 
-                List<Post> list = new List<Post>();
-                list.Add(deletedPost);
+        //        List<Post> list = new List<Post>();
+        //        list.Add(updatedPost);
 
-                return Ok(new { Post = list.AsEnumerable().ToList() });
-            }
-            catch (Exception ex)
-            { }
+        //        return Ok(new { Post = list.AsEnumerable().ToList() });
+        //    }
+        //    catch (Exception ex)
+        //    { }
 
-            return null;
-        }
+        //    return null;
+        //}
+
+
+        //[HttpPost]
+        //public IHttpActionResult deletePost(int ID)
+        //{
+        //    try
+        //    {
+        //        MySqlConnection Connection = new MySqlConnection(ConnectionString);
+
+        //        Connection.Open();
+
+        //        string Query = "DELETE FROM post WHERE PostID=" + ID;
+
+        //        MySqlCommand deleteCommand = new MySqlCommand(Query, Connection);
+
+        //        deleteCommand.ExecuteNonQuery();
+
+        //        Connection.Close();
+
+        //        Post deletedPost = new Post();
+        //        deletedPost.PostID = ID;
+
+        //        List<Post> list = new List<Post>();
+        //        list.Add(deletedPost);
+
+        //        return Ok(new { Post = list.AsEnumerable().ToList() });
+        //    }
+        //    catch (Exception ex)
+        //    { }
+
+        //    return null;
+        //}
 
 
 
@@ -1270,7 +1482,7 @@ namespace FoodlingsWebAPI.Controllers
 
         // Comment Table - CRUD Operations
         [HttpPost]
-        public IHttpActionResult createComment(int ID, int SubscriberID, int PostID, string CommentText, string Timestamp)
+        public IHttpActionResult createComment(int SubscriberID, int PostID, string CommentText, string Timestamp)
         {
             try
             {
@@ -1278,7 +1490,7 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "INSERT INTO comment_table VALUES(" + ID + "," + SubscriberID + "," + PostID + ",'" + CommentText + "','" + Timestamp + "')";
+                string Query = "INSERT INTO comment_table(SubscriberID, PostID, CommentText, Timestamp) VALUES(" + SubscriberID + "," + PostID + ",'" + CommentText + "','" + Timestamp + "')";
 
                 MySqlCommand insertCommand = new MySqlCommand(Query, Connection);
 
@@ -1287,7 +1499,6 @@ namespace FoodlingsWebAPI.Controllers
                 Connection.Close();
 
                 Comment addedComment = new Comment();
-                addedComment.CommentID = ID;
                 addedComment.SubscriberID = SubscriberID;
                 addedComment.PostID = PostID;
                 addedComment.CommentText = CommentText;
@@ -1360,7 +1571,7 @@ namespace FoodlingsWebAPI.Controllers
 
 
         [HttpGet]
-        public IHttpActionResult getAllComments(int ID)
+        public IHttpActionResult getAllComments(int PostID)
         {
             try
             {
@@ -1368,7 +1579,9 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "SELECT * FROM comment_table WHERE SubscriberID=" + ID;
+                string Query = "SELECT subscriber.SubscriberName, comment_table.CommentText, comment_table.Timestamp FROM comment_table INNER JOIN subscriber ON comment_table.SubscriberID=subscriber.SubscriberID where PostID=" + PostID;
+
+                //string Query = "SELECT * FROM comment_table WHERE PostID=" + PostID;
 
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
 
@@ -1382,11 +1595,9 @@ namespace FoodlingsWebAPI.Controllers
                 {
                     if (SelectReader.HasRows)
                     {
-                        retrievedComment.CommentID = (int)SelectReader.GetValue(0);
-                        retrievedComment.SubscriberID = (int)SelectReader.GetValue(1);
-                        retrievedComment.PostID = (int)SelectReader.GetValue(2);
-                        retrievedComment.CommentText = (string)SelectReader.GetValue(3);
-                        retrievedComment.TimeStamp = (string)SelectReader.GetValue(4);
+                        retrievedComment.SubscriberName = (string)SelectReader.GetValue(0);
+                        retrievedComment.CommentText = (string)SelectReader.GetValue(1);
+                        retrievedComment.TimeStamp = (string)SelectReader.GetValue(2);
 
                         list.Add(retrievedComment);
 

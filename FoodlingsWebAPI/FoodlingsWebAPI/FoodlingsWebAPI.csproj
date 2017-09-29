@@ -265,7 +265,11 @@
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\CollectionModelDescription.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\ApiGroup.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\Api.cshtml" />
+    <None Include="Properties\PublishProfiles\foodlingsapi - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\foodlingsapi - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\FoodlingsWebApi - FTP %282%29.pubxml" />
     <None Include="Properties\PublishProfiles\FoodlingsWebApi - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\FoodlingsWebApi - Web Deploy %282%29.pubxml" />
     <None Include="Properties\PublishProfiles\FoodlingsWebApi - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />

@@ -9,6 +9,7 @@ namespace FoodlingsWebAPI.Models.Database_Model
     {
         public int CommentID { get; set; }
         public int SubscriberID { get; set; }
+        public string SubscriberName { get; set; }
         public int PostID { get; set; }
         public string CommentText { get; set; }
         public string TimeStamp { get; set; }

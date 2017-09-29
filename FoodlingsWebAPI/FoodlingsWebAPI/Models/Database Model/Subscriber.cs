@@ -17,5 +17,7 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public String Bio { get; set; }
         public string Gender { get; set; }
         public string DoB { get; set; }
+        public string DisplayPicture { get; set; }
+        public string CoverPhoto { get; set; }
     }
 }
