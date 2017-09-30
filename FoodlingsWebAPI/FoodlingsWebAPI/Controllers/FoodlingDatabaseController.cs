@@ -20,7 +20,7 @@ namespace FoodlingsWebAPI.Controllers
 
                 // Subscriber Table - CRUD Operations
         [HttpPost]
-        public IHttpActionResult createSubscriber(string SubscriberName, string Password, string Type, string Email, int DisplayPictureID, string PhoneNumber, string Bio, string Gender, string DoB)
+        public IHttpActionResult createSubscriber(string SubscriberName, string Password, string Type, string Email, string PhoneNumber, string Bio, string Gender, string DoB)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "INSERT INTO subscriber(SubscriberName,Password,Type,EmailAddress,DisplayPictureID,PhoneNumber,Bio,Gender,DoB) VALUES('" + SubscriberName + "'" + ",'" + Password + "'" + ",'" + Type + "'" + ",'" + Email + "'" + "," + DisplayPictureID + ",'" + PhoneNumber + "'" + ",'" + Bio + "'" + ",'" + Gender + "'" + ",'" + DoB + "')";
+                string Query = "INSERT INTO subscriber(SubscriberName,Password,Type,EmailAddress,PhoneNumber,Bio,Gender,DoB) VALUES('" + SubscriberName + "'" + ",'" + Password + "'" + ",'" + Type + "'" + ",'" + Email + "','" + PhoneNumber + "','" + Bio + "'" + ",'" + Gender + "'" + ",'" + DoB + "')";
 
                 MySqlCommand insertCommand = new MySqlCommand(Query, Connection);
 
@@ -41,11 +41,13 @@ namespace FoodlingsWebAPI.Controllers
                 addedSubscriber.Password = Password;
                 addedSubscriber.Type = Type;
                 addedSubscriber.Email = Email;
-                addedSubscriber.DisplayPictureID = DisplayPictureID;
+                addedSubscriber.DisplayPictureID = 0;
                 addedSubscriber.PhoneNumber = PhoneNumber;
                 addedSubscriber.Bio = Bio;
                 addedSubscriber.Gender = Gender;
                 addedSubscriber.DoB = DoB;
+                addedSubscriber.DisplayPicture = "";
+                addedSubscriber.CoverPhoto = "";
 
                 List<Subscriber> list = new List<Subscriber>();
                 list.Add(addedSubscriber);
@@ -103,7 +105,16 @@ namespace FoodlingsWebAPI.Controllers
                             else if (counter == 5)
                             { retrievedSubscriber.Email = (string)Reader.GetValue(i); }
                             else if (counter == 6)
-                            { retrievedSubscriber.DisplayPictureID = (int)Reader.GetValue(i); }
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.DisplayPictureID = (int)Reader.GetValue(i);
+                                }
+                                catch(Exception e)
+                                {
+                                    retrievedSubscriber.DisplayPictureID = 0;
+                                }
+                            }
                             else if (counter == 7)
                             { retrievedSubscriber.PhoneNumber = (String)Reader.GetValue(i); }
                             else if (counter == 8)
@@ -112,6 +123,28 @@ namespace FoodlingsWebAPI.Controllers
                             { retrievedSubscriber.Gender = (string)Reader.GetValue(i); }
                             else if (counter == 10)
                             { retrievedSubscriber.DoB = (string)Reader.GetValue(i); }
+                            else if (counter == 11)
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.DisplayPicture = (string)Reader.GetValue(i);
+                                }
+                                catch (Exception e)
+                                {
+                                    retrievedSubscriber.DisplayPicture = "";
+                                }
+                            }
+                            else if (counter == 12)
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.CoverPhoto = (string)Reader.GetValue(i);
+                                }
+                                catch (Exception e)
+                                {
+                                    retrievedSubscriber.CoverPhoto = "";
+                                }
+                            }
 
                             counter++;
                         }
@@ -142,16 +175,16 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query;
+                string Query = "update subscriber set DisplayPicture='" + subscriber.DisplayPicture + "' where SubscriberID=" + subscriber.SubscriberID;
 
-                if (!subscriber.DisplayPicture.Equals("CoverPhoto"))
-                {
-                    Query = "update subscriber set DisplayPicture='" + subscriber.DisplayPicture + "' where SubscriberID=" + subscriber.SubscriberID;
-                }
-                else
-                {
-                    Query = "update subscriber set CoverPhoto='" + subscriber.CoverPhoto + "' where SubscriberID=" + subscriber.SubscriberID;
-                }
+                //if (!subscriber.DisplayPicture.Equals("CoverPhoto"))
+                //{
+                //    Query = "update subscriber set DisplayPicture='" + subscriber.DisplayPicture + "' where SubscriberID=" + subscriber.SubscriberID;
+                //}
+                //else
+                //{
+                //    Query = "update subscriber set CoverPhoto='" + subscriber.CoverPhoto + "' where SubscriberID=" + subscriber.SubscriberID;
+                //}
 
                 MySqlCommand insertCommand = new MySqlCommand(Query, Connection);
 
@@ -788,7 +821,7 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "INSERT INTO post(PostID, SubscriberID, ImagePresence, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString) VALUES(" + Convert.ToInt32(post.PostID) + "," + Convert.ToInt32(post.SubscriberID) + "," + Convert.ToInt32(post.ImagePresence) + "," + Convert.ToInt32(post.ReviewPresence) + "," + Convert.ToInt32(post.CheckinPresence) + ",'" + post.Privacy + "','" + post.TimeStamp + "'" + ",'" + post.PostDescription + "','" + post.ImageString + "')";
+                string Query = "INSERT INTO post(SubscriberID, ImagePresence, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString) VALUES(" + Convert.ToInt32(post.SubscriberID) + "," + Convert.ToInt32(post.ImagePresence) + "," + Convert.ToInt32(post.ReviewPresence) + "," + Convert.ToInt32(post.CheckinPresence) + ",'" + post.Privacy + "','" + post.TimeStamp + "'" + ",'" + post.PostDescription + "','" + post.ImageString + "')";
 
                 //if ((post.ImageAlbumID.Equals("1000")) && (post.ImageString.Equals("none")))
                 //{
