@@ -9,6 +9,7 @@ namespace FoodlingsWebAPI.Models.Database_Model
     {
         public int PostID { get; set; }
         public int SubscriberID { get; set; }
+        public string SubscriberName { get; set; }
         public int ImagePresence { get; set; }
         public int ImageAlbumID { get; set; }
         public int ReviewPresence { get; set; }
@@ -16,7 +17,8 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public string Privacy { get; set; }
         public string TimeStamp { get; set; }
         public string PostDescription { get; set; }
-
         public string ImageString { get; set; }
+        public int CommentsCount { get; set; }
+        public int LikesCount { get; set; }
     }
 }

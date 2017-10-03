@@ -60,6 +60,118 @@ namespace FoodlingsWebAPI.Controllers
             return null;
         }
 
+        [HttpPost]
+        public IHttpActionResult createRestaurant(string SubscriberName, string Password, string Type, string Email, string PhoneNumber, string Bio, string Address, string Timing, string Category)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = "INSERT INTO subscriber(SubscriberName,Password,Type,EmailAddress,PhoneNumber,Bio) VALUES('" + SubscriberName + "'" + ",'" + Password + "'" + ",'" + Type + "'" + ",'" + Email + "','" + PhoneNumber + "','" + Bio + "')";
+                MySqlCommand insertCommand = new MySqlCommand(Query, Connection);
+                insertCommand.ExecuteNonQuery();
+                
+                Subscriber addedSubscriber = new Subscriber();
+                addedSubscriber.SubscriberName = SubscriberName;
+                addedSubscriber.Password = Password;
+                addedSubscriber.Type = Type;
+                addedSubscriber.Email = Email;
+                addedSubscriber.DisplayPictureID = 0;
+                addedSubscriber.PhoneNumber = PhoneNumber;
+                addedSubscriber.Bio = Bio;
+                addedSubscriber.Gender = "";
+                addedSubscriber.DoB = "";
+                addedSubscriber.DisplayPicture = "";
+                addedSubscriber.CoverPhoto = "";
+
+                Query = "SELECT * FROM subscriber WHERE EmailAddress = '" + Email + "'";
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+                Subscriber retrievedSubscriber = new Subscriber();
+                using (MySqlDataReader Reader = getCommand.ExecuteReader())
+                {
+                    if (Reader.HasRows && Reader.Read())
+                    {
+                        int counter = 1;
+                        for (int i = 0; i < Reader.FieldCount; i++)
+                        {
+                            if (counter == 1)
+                            { retrievedSubscriber.SubscriberID = (int)Reader.GetValue(i); }
+
+                            counter++;
+                        }
+                    }
+                }
+
+                Query = "INSERT INTO restaurantprofile(SubscriberID, Address, Timing, Category) VALUES(" + retrievedSubscriber.SubscriberID + ",'" + Address + "','" + Timing + "','" + Category + "')";
+                insertCommand = new MySqlCommand(Query, Connection);
+                insertCommand.ExecuteNonQuery();
+
+                Connection.Close();
+
+                List<Subscriber> list = new List<Subscriber>();
+                list.Add(addedSubscriber);
+                return Ok(new { Subscriber = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+            return null;
+        }
+
+        [HttpGet]
+        public IHttpActionResult validateEmail(string SubscriberEmail)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = Query = "SELECT * FROM subscriber WHERE EmailAddress = '" + SubscriberEmail + "'";
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+
+                Subscriber retrievedSubscriber = new Subscriber();
+                retrievedSubscriber.SubscriberID = 0;
+                retrievedSubscriber.SubscriberName = "";
+                retrievedSubscriber.Password = "";
+                retrievedSubscriber.PhoneNumber = "";
+                retrievedSubscriber.Type = "";
+                retrievedSubscriber.Gender = "";
+                retrievedSubscriber.DoB = "";
+                retrievedSubscriber.DisplayPictureID = 0;
+                retrievedSubscriber.DisplayPicture = "";
+                retrievedSubscriber.CoverPhoto = "";
+                retrievedSubscriber.Bio = "";
+                retrievedSubscriber.Email = "Available";
+
+                using (MySqlDataReader Reader = getCommand.ExecuteReader())
+                {
+                    if (Reader.HasRows && Reader.Read())
+                    {
+                        int counter = 1;
+
+                        for (int i = 0; i < Reader.FieldCount; i++)
+                        {
+                            if (counter == 5)
+                            { retrievedSubscriber.Email = (string)Reader.GetValue(i); }
+                           
+                            counter++;
+                        }
+                    }
+                }
+
+                List<Subscriber> list = new List<Subscriber>();
+                list.Add(retrievedSubscriber);
+
+                Connection.Close();
+
+                return Ok(new { Subscriber = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+
+            return null;
+        }
+
 
         [HttpGet]
         public IHttpActionResult getSubscriber(string SubscriberName, string SubscriberEmail)
@@ -111,6 +223,119 @@ namespace FoodlingsWebAPI.Controllers
                                     retrievedSubscriber.DisplayPictureID = (int)Reader.GetValue(i);
                                 }
                                 catch(Exception e)
+                                {
+                                    retrievedSubscriber.DisplayPictureID = 0;
+                                }
+                            }
+                            else if (counter == 7)
+                            { retrievedSubscriber.PhoneNumber = (String)Reader.GetValue(i); }
+                            else if (counter == 8)
+                            { retrievedSubscriber.Bio = (string)Reader.GetValue(i); }
+                            else if (counter == 9)
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.Gender = (string)Reader.GetValue(i);
+                                }
+                                catch (Exception e)
+                                {
+                                    retrievedSubscriber.Gender = "";
+                                }
+                            }
+                            else if (counter == 10)
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.DoB = (string)Reader.GetValue(i);
+                                }
+                                catch (Exception e)
+                                {
+                                    retrievedSubscriber.DoB = "";
+                                }
+                            }
+                            else if (counter == 11)
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.DisplayPicture = (string)Reader.GetValue(i);
+                                }
+                                catch (Exception e)
+                                {
+                                    retrievedSubscriber.DisplayPicture = "";
+                                }
+                            }
+                            else if (counter == 12)
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.CoverPhoto = (string)Reader.GetValue(i);
+                                }
+                                catch (Exception e)
+                                {
+                                    retrievedSubscriber.CoverPhoto = "";
+                                }
+                            }
+
+                            counter++;
+                        }
+                    }
+                }
+
+
+                List<Subscriber> list = new List<Subscriber>();
+                list.Add(retrievedSubscriber);
+
+                Connection.Close();
+
+                return Ok(new { Subscriber = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+
+            return null;
+        }
+
+        [HttpGet]
+        public IHttpActionResult getSubscriber(string SubscriberID)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+
+                Connection.Open();
+
+                string Query = Query = "SELECT * FROM subscriber WHERE SubscriberID = " + SubscriberID;
+
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+
+                Subscriber retrievedSubscriber = new Subscriber();
+
+                using (MySqlDataReader Reader = getCommand.ExecuteReader())
+                {
+                    if (Reader.HasRows && Reader.Read())
+                    {
+                        int counter = 1;
+
+                        for (int i = 0; i < Reader.FieldCount; i++)
+                        {
+                            if (counter == 1)
+                            { retrievedSubscriber.SubscriberID = (int)Reader.GetValue(i); }
+                            else if (counter == 2)
+                            { retrievedSubscriber.SubscriberName = (string)Reader.GetValue(i); }
+                            else if (counter == 3)
+                            { retrievedSubscriber.Password = (string)Reader.GetValue(i); }
+                            else if (counter == 4)
+                            { retrievedSubscriber.Type = (string)Reader.GetValue(i); }
+                            else if (counter == 5)
+                            { retrievedSubscriber.Email = (string)Reader.GetValue(i); }
+                            else if (counter == 6)
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.DisplayPictureID = (int)Reader.GetValue(i);
+                                }
+                                catch (Exception e)
                                 {
                                     retrievedSubscriber.DisplayPictureID = 0;
                                 }
@@ -175,16 +400,16 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "update subscriber set DisplayPicture='" + subscriber.DisplayPicture + "' where SubscriberID=" + subscriber.SubscriberID;
+                string Query;
 
-                //if (!subscriber.DisplayPicture.Equals("CoverPhoto"))
-                //{
-                //    Query = "update subscriber set DisplayPicture='" + subscriber.DisplayPicture + "' where SubscriberID=" + subscriber.SubscriberID;
-                //}
-                //else
-                //{
-                //    Query = "update subscriber set CoverPhoto='" + subscriber.CoverPhoto + "' where SubscriberID=" + subscriber.SubscriberID;
-                //}
+                if (!subscriber.DisplayPicture.Equals("CoverPhoto"))
+                {
+                    Query = "update subscriber set DisplayPicture='" + subscriber.DisplayPicture + "' where SubscriberID=" + subscriber.SubscriberID;
+                }
+                else
+                {
+                    Query = "update subscriber set CoverPhoto='" + subscriber.CoverPhoto + "' where SubscriberID=" + subscriber.SubscriberID;
+                }
 
                 MySqlCommand insertCommand = new MySqlCommand(Query, Connection);
 
@@ -204,67 +429,6 @@ namespace FoodlingsWebAPI.Controllers
 
             return null;
         }
-
-        [HttpGet]
-        public IHttpActionResult getSubscriber(string SubscriberID)
-        {
-            try
-            {
-                MySqlConnection Connection = new MySqlConnection(ConnectionString);
-                Connection.Open();
-                string Query = "SELECT * FROM subscriber WHERE SubscriberID = " + SubscriberID;
-                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
-                Subscriber retrievedSubscriber = new Subscriber();
-
-                using (MySqlDataReader Reader = getCommand.ExecuteReader())
-                {
-                    if (Reader.HasRows && Reader.Read())
-                    {
-                        int counter = 1;
-
-                        for (int i = 0; i < Reader.FieldCount; i++)
-                        {
-                            if (counter == 1)
-                            { retrievedSubscriber.SubscriberID = (int)Reader.GetValue(i); }
-                            else if (counter == 2)
-                            { retrievedSubscriber.SubscriberName = (string)Reader.GetValue(i); }
-                            else if (counter == 3)
-                            { retrievedSubscriber.Password = (string)Reader.GetValue(i); }
-                            else if (counter == 4)
-                            { retrievedSubscriber.Type = (string)Reader.GetValue(i); }
-                            else if (counter == 5)
-                            { retrievedSubscriber.Email = (string)Reader.GetValue(i); }
-                            else if (counter == 6)
-                            { retrievedSubscriber.DisplayPictureID = (int)Reader.GetValue(i); }
-                            else if (counter == 7)
-                            { retrievedSubscriber.PhoneNumber = (String)Reader.GetValue(i); }
-                            else if (counter == 8)
-                            { retrievedSubscriber.Bio = (string)Reader.GetValue(i); }
-                            else if (counter == 9)
-                            { retrievedSubscriber.Gender = (string)Reader.GetValue(i); }
-                            else if (counter == 10)
-                            { retrievedSubscriber.DoB = (string)Reader.GetValue(i); }
-
-                            counter++;
-                        }
-                    }
-                }
-
-
-                List<Subscriber> list = new List<Subscriber>();
-                list.Add(retrievedSubscriber);
-
-                Connection.Close();
-
-                return Ok(new { Subscriber = list.AsEnumerable().ToList() });
-            }
-            catch (Exception ex)
-            { }
-
-
-            return null;
-        }
-
 
         [HttpGet]
         public IHttpActionResult getAllSubscribers()
@@ -811,8 +975,7 @@ namespace FoodlingsWebAPI.Controllers
 
 
         //Post Table - CRUD Operations
-
-       [HttpPost]
+        [HttpPost]
         public IHttpActionResult createPost([FromBody] Post post)
         {
             try
@@ -943,7 +1106,6 @@ namespace FoodlingsWebAPI.Controllers
         //    return null;
         //}
 
-
         [HttpGet]
         public IHttpActionResult getAllPosts()
         {
@@ -953,7 +1115,7 @@ namespace FoodlingsWebAPI.Controllers
 
                 Connection.Open();
 
-                string Query = "SELECT * FROM post";
+                string Query = "select PostID, post.SubscriberID, SubscriberName, ImagePresence, ImageAlbumID, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString from post INNER JOIN subscriber ON post.SubscriberID=subscriber.SubscriberID";
 
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
 
@@ -969,31 +1131,35 @@ namespace FoodlingsWebAPI.Controllers
                     {
                         retrievedPost.PostID = (int)SelectReader.GetValue(0);
                         retrievedPost.SubscriberID = (int)SelectReader.GetValue(1);
-                        retrievedPost.ImagePresence = (int)SelectReader.GetValue(2);
+                        retrievedPost.SubscriberName = (string)SelectReader.GetValue(2);
+                        retrievedPost.ImagePresence = (int)SelectReader.GetValue(3);
 
                         try
                         {
-                            retrievedPost.ImageAlbumID = (int)SelectReader.GetValue(3);
+                            retrievedPost.ImageAlbumID = (int)SelectReader.GetValue(4);
                         }
                         catch (Exception e)
                         {
                             retrievedPost.ImageAlbumID = 1000;
                         }
 
-                        retrievedPost.ReviewPresence = (int)SelectReader.GetValue(4);
-                        retrievedPost.CheckinPresence = (int)SelectReader.GetValue(5);
-                        retrievedPost.Privacy = (string)SelectReader.GetValue(6);
-                        retrievedPost.TimeStamp = (string)SelectReader.GetValue(7);
-                        retrievedPost.PostDescription = (string)SelectReader.GetValue(8);
+                        retrievedPost.ReviewPresence = (int)SelectReader.GetValue(5);
+                        retrievedPost.CheckinPresence = (int)SelectReader.GetValue(6);
+                        retrievedPost.Privacy = (string)SelectReader.GetValue(7);
+                        retrievedPost.TimeStamp = (string)SelectReader.GetValue(8);
+                        retrievedPost.PostDescription = (string)SelectReader.GetValue(9);
 
                         try
                         {
-                            retrievedPost.ImageString = (string)SelectReader.GetValue(9);
+                            retrievedPost.ImageString = (string)SelectReader.GetValue(10);
                         }
                         catch (Exception e)
                         {
                             retrievedPost.ImageString = "";
                         }
+
+                        retrievedPost.CommentsCount = getCommentsCount(retrievedPost.PostID);
+                        retrievedPost.LikesCount = getLikesCount(retrievedPost.PostID);
 
                         list.Add(retrievedPost);
 
@@ -1011,73 +1177,127 @@ namespace FoodlingsWebAPI.Controllers
             return null;
         }
 
-        //[HttpGet]
-        //public IHttpActionResult getAllPosts(int ID)
-        //{
-        //    try
-        //    {
-        //        MySqlConnection Connection = new MySqlConnection(ConnectionString);
+        [HttpGet]
+        public IHttpActionResult getAllPosts(int SubscriberID)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = "select PostID, post.SubscriberID, SubscriberName, ImagePresence, ImageAlbumID, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString from post INNER JOIN subscriber ON post.SubscriberID=subscriber.SubscriberID WHERE post.SubscriberID = " + SubscriberID;
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+                List<Post> list = new List<Post>();
+                Post retrievedPost = new Post();
+                MySqlDataReader SelectReader = getCommand.ExecuteReader();
+                while (SelectReader.Read())
+                {
+                    if (SelectReader.HasRows)
+                    {
+                        retrievedPost.PostID = (int)SelectReader.GetValue(0);
+                        retrievedPost.SubscriberID = (int)SelectReader.GetValue(1);
+                        retrievedPost.SubscriberName = (string)SelectReader.GetValue(2);
+                        retrievedPost.ImagePresence = (int)SelectReader.GetValue(3);
 
-        //        Connection.Open();
+                        try
+                        {
+                            retrievedPost.ImageAlbumID = (int)SelectReader.GetValue(4);
+                        }
+                        catch (Exception e)
+                        {
+                            retrievedPost.ImageAlbumID = 1000;
+                        }
 
-        //        string Query = "SELECT * FROM post WHERE SubscriberID = " + ID;
+                        retrievedPost.ReviewPresence = (int)SelectReader.GetValue(5);
+                        retrievedPost.CheckinPresence = (int)SelectReader.GetValue(6);
+                        retrievedPost.Privacy = (string)SelectReader.GetValue(7);
+                        retrievedPost.TimeStamp = (string)SelectReader.GetValue(8);
+                        retrievedPost.PostDescription = (string)SelectReader.GetValue(9);
 
-        //        MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+                        try
+                        {
+                            retrievedPost.ImageString = (string)SelectReader.GetValue(10);
+                        }
+                        catch (Exception e)
+                        {
+                            retrievedPost.ImageString = "";
+                        }
 
-        //        List<Post> list = new List<Post>();
+                        retrievedPost.CommentsCount = getCommentsCount(retrievedPost.PostID);
+                        retrievedPost.LikesCount = getLikesCount(retrievedPost.PostID);
 
-        //        Post retrievedPost = new Post();
+                        list.Add(retrievedPost);
 
-        //        MySqlDataReader SelectReader = getCommand.ExecuteReader();
+                        retrievedPost = new Post();
+                    }
+                }
 
-        //        while (SelectReader.Read())
-        //        {
-        //            if (SelectReader.HasRows)
-        //            {
-        //                retrievedPost.PostID = (int)SelectReader.GetValue(0);
-        //                retrievedPost.SubscriberID = (int)SelectReader.GetValue(1);
-        //                retrievedPost.ImagePresence = (int)SelectReader.GetValue(2);
+                Connection.Close();
 
-        //                try
-        //                {
-        //                    retrievedPost.ImageAlbumID = (int)SelectReader.GetValue(3);
-        //                }
-        //                catch (Exception e)
-        //                {
-        //                    retrievedPost.ImageAlbumID = 1000;
-        //                }
+                return Ok(new { Post = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
 
-        //                retrievedPost.ReviewPresence = (int)SelectReader.GetValue(4);
-        //                retrievedPost.CheckinPresence = (int)SelectReader.GetValue(5);
-        //                retrievedPost.Privacy = (string)SelectReader.GetValue(6);
-        //                retrievedPost.TimeStamp = (string)SelectReader.GetValue(7);
-        //                retrievedPost.PostDescription = (string)SelectReader.GetValue(8);
+            return null;
+        }
 
-        //                try
-        //                {
-        //                    retrievedPost.ImageString = (string)SelectReader.GetValue(9);
-        //                }
-        //                catch (Exception e)
-        //                {
-        //                    retrievedPost.ImageString = "";
-        //                }
+        #region Get Comments Count
+        private int getCommentsCount(int PostID)
+        {
+            int CommentsCount = 0;
+            MySqlConnection CommentsConnection = new MySqlConnection(ConnectionString);
+            try
+            {               
+                CommentsConnection.Open();
+                string commentQuery = "select COUNT(*) from post JOIN comment_table ON post.PostID=comment_table.PostID where comment_table.PostID=" + PostID;
+                MySqlCommand getCommentCommand = new MySqlCommand(commentQuery, CommentsConnection);
+                MySqlDataReader SelectCommentReader = getCommentCommand.ExecuteReader();
+                while (SelectCommentReader.Read())
+                {
+                    if (SelectCommentReader.HasRows)
+                    {
+                        CommentsCount = Convert.ToInt32(SelectCommentReader.GetValue(0));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CommentsCount = 0;
+            }
 
-        //                list.Add(retrievedPost);
+            CommentsConnection.Close();
+            return CommentsCount;      
+        }
+        #endregion
 
-        //                retrievedPost = new Post();
-        //            }
-        //        }
+        #region Get Likes Count
+        private int getLikesCount(int PostID)
+        {
+            int LikesCount = 0;
+            MySqlConnection LikesConnection = new MySqlConnection(ConnectionString);
+            try
+            {
+                LikesConnection.Open();
+                string likeQuery = "select COUNT(*) from post JOIN like_table ON post.PostID=like_table.PostID where like_table.PostID=" + PostID;
+                MySqlCommand getLikeCommand = new MySqlCommand(likeQuery, LikesConnection);
+                MySqlDataReader SelectLikeReader = getLikeCommand.ExecuteReader();
+                while (SelectLikeReader.Read())
+                {
+                    if (SelectLikeReader.HasRows)
+                    {
+                        LikesCount = Convert.ToInt32(SelectLikeReader.GetValue(0));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LikesCount = 0;
+            }
 
-        //        Connection.Close();
-
-        //        return Ok(new { Post = list.AsEnumerable().ToList() });
-        //    }
-        //    catch (Exception ex)
-        //    { }
-
-        //    return null;
-        //}
-
+            LikesConnection.Close();
+            return LikesCount;
+        }
+        #endregion
 
         //[HttpPost]
         //public IHttpActionResult updatePost(int ID, int SubscriberID, int ImagePresence, int ImageAlbumID, int ReviewPresence, int CheckinPresence, string Privacy, string Timestamp, string PostDescription)
@@ -1152,6 +1372,7 @@ namespace FoodlingsWebAPI.Controllers
 
 
         // Images Table - CRUD Operations
+
         [HttpPost]
         public IHttpActionResult createImage(int ID, int ImageAlbumID, int PostID)
         {
