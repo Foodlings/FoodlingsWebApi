@@ -7,9 +7,9 @@ namespace FoodlingsWebAPI.Models.Database_Model
 {
     public class Like
     {
-        public int LikeID { get; set; }
-        public int SubscriberID { get; set; }
-        public int PostID { get; set; }
+        public string LikeID { get; set; }
+        public string SubscriberID { get; set; }
+        public string PostID { get; set; }
         public string TimeStamp { get; set; }
     }
 }

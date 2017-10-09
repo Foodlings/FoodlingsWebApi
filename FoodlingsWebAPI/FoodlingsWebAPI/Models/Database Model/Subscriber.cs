@@ -19,5 +19,9 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public string DoB { get; set; }
         public string DisplayPicture { get; set; }
         public string CoverPhoto { get; set; }
+        public int RestaurantID { get; set; }
+        public string Address { get; set; }
+        public string Timing { get; set; }
+        public string Category { get; set; }
     }
 }

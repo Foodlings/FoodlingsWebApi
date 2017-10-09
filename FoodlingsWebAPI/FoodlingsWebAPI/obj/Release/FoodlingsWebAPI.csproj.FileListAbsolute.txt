@@ -76,3 +76,4 @@ C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\obj\Release\FoodlingsWebAPI.csprojResolveAssemblyReference.cache
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\obj\Release\FoodlingsWebAPI.dll
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\obj\Release\FoodlingsWebAPI.pdb
+C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\CloudinaryDotNet.dll

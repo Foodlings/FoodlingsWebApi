@@ -13,5 +13,6 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public int PostID { get; set; }
         public string CommentText { get; set; }
         public string TimeStamp { get; set; }
+        public string DisplayPicture { get; set; }
     }
 }
