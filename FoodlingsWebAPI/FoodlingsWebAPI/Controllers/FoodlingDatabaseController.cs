@@ -1100,23 +1100,27 @@ namespace FoodlingsWebAPI.Controllers
         {
             try
             {
-                byte[] bytes = Convert.FromBase64String(post.ImageString);
-                Stream stream = new MemoryStream(bytes);
-                var uploadParams = new ImageUploadParams()
+
+                string url = "none";
+
+                if (!post.ImageString.Equals("none"))
                 {
-                    File = new FileDescription("image", stream)
-                };
+                    byte[] bytes = Convert.FromBase64String(post.ImageString);
+                    Stream stream = new MemoryStream(bytes);
+                    var uploadParams = new ImageUploadParams()
+                    {
+                        File = new FileDescription("image", stream)
+                    };
 
-                var uploadResult = cloudinary.Upload(uploadParams);
+                    var uploadResult = cloudinary.Upload(uploadParams);
 
-                string url = "empty";
-
-                try
-                {
-                    url = (string)uploadResult.JsonObj.SelectToken("url");
+                    try
+                    {
+                        url = (string)uploadResult.JsonObj.SelectToken("url");
+                    }
+                    catch (Exception ex)
+                    { url = "error"; }
                 }
-                catch(Exception ex)
-                { url = "error"; }
 
                 MySqlConnection Connection = new MySqlConnection(ConnectionString);
 
