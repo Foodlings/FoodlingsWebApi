@@ -297,9 +297,9 @@ namespace FoodlingsWebAPI.Controllers
                 if (retrievedSubscriber.Type.Equals("Restaurant"))
                 {
                     MySqlConnection restaurantConnection = new MySqlConnection(ConnectionString);
-                    Connection.Open();
+                    restaurantConnection.Open();
                     string resQuery = "SELECT * FROM restaurantprofile WHERE SubscriberID = " + retrievedSubscriber.SubscriberID;
-                    MySqlCommand resCommand = new MySqlCommand(resQuery, Connection);
+                    MySqlCommand resCommand = new MySqlCommand(resQuery, restaurantConnection);
 
                     using (MySqlDataReader resReader = resCommand.ExecuteReader())
                     {
@@ -309,15 +309,19 @@ namespace FoodlingsWebAPI.Controllers
 
                             for (int i = 0; i < resReader.FieldCount; i++)
                             {
-                                if (counter == 2)
+                                if (counter == 3)
                                 { retrievedSubscriber.Address = (string)resReader.GetValue(i); }
-                                else if (counter == 3)
-                                { retrievedSubscriber.Timing = (string)resReader.GetValue(i); }
                                 else if (counter == 4)
+                                { retrievedSubscriber.Timing = (string)resReader.GetValue(i); }
+                                else if (counter == 5)
                                 { retrievedSubscriber.Category = (string)resReader.GetValue(i); }
+
+                                counter++;
                             }
                         }
                     }
+
+                    restaurantConnection.Close();
                 }
 
                 List<Subscriber> list = new List<Subscriber>();
@@ -382,9 +386,27 @@ namespace FoodlingsWebAPI.Controllers
                             else if (counter == 8)
                             { retrievedSubscriber.Bio = (string)Reader.GetValue(i); }
                             else if (counter == 9)
-                            { retrievedSubscriber.Gender = (string)Reader.GetValue(i); }
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.Gender = (string)Reader.GetValue(i);
+                                }
+                                catch (Exception e)
+                                {
+                                    retrievedSubscriber.Gender = "";
+                                }
+                            }
                             else if (counter == 10)
-                            { retrievedSubscriber.DoB = (string)Reader.GetValue(i); }
+                            {
+                                try
+                                {
+                                    retrievedSubscriber.DoB = (string)Reader.GetValue(i);
+                                }
+                                catch (Exception e)
+                                {
+                                    retrievedSubscriber.DoB = "";
+                                }
+                            }
                             else if (counter == 11)
                             {
                                 try
@@ -393,7 +415,7 @@ namespace FoodlingsWebAPI.Controllers
                                 }
                                 catch (Exception e)
                                 {
-                                    retrievedSubscriber.DisplayPicture = "";
+                                    retrievedSubscriber.DisplayPicture = "none";
                                 }
                             }
                             else if (counter == 12)
@@ -404,13 +426,47 @@ namespace FoodlingsWebAPI.Controllers
                                 }
                                 catch (Exception e)
                                 {
-                                    retrievedSubscriber.CoverPhoto = "";
+                                    retrievedSubscriber.CoverPhoto = "none";
                                 }
                             }
 
                             counter++;
                         }
                     }
+                }
+
+                retrievedSubscriber.Timing = "";
+                retrievedSubscriber.Category = "";
+                retrievedSubscriber.Address = "";
+
+                if (retrievedSubscriber.Type.Equals("Restaurant"))
+                {
+                    MySqlConnection restaurantConnection = new MySqlConnection(ConnectionString);
+                    restaurantConnection.Open();
+                    string resQuery = "SELECT * FROM restaurantprofile WHERE SubscriberID = " + retrievedSubscriber.SubscriberID;
+                    MySqlCommand resCommand = new MySqlCommand(resQuery, restaurantConnection);
+
+                    using (MySqlDataReader resReader = resCommand.ExecuteReader())
+                    {
+                        if (resReader.HasRows && resReader.Read())
+                        {
+                            int counter = 1;
+
+                            for (int i = 0; i < resReader.FieldCount; i++)
+                            {
+                                if (counter == 3)
+                                { retrievedSubscriber.Address = (string)resReader.GetValue(i); }
+                                else if (counter == 4)
+                                { retrievedSubscriber.Timing = (string)resReader.GetValue(i); }
+                                else if (counter == 5)
+                                { retrievedSubscriber.Category = (string)resReader.GetValue(i); }
+
+                                counter++;
+                            }
+                        }
+                    }
+
+                    restaurantConnection.Close();
                 }
 
 
@@ -1269,13 +1325,23 @@ namespace FoodlingsWebAPI.Controllers
         }
 
         [HttpGet]
-        public IHttpActionResult getAllPosts(int SubscriberID)
+        public IHttpActionResult getAllPosts(int SubscriberID, string Scope)
         {
             try
             {
                 MySqlConnection Connection = new MySqlConnection(ConnectionString);
                 Connection.Open();
-                string Query = "select PostID, post.SubscriberID, SubscriberName, ImagePresence, ImageAlbumID, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString from post INNER JOIN subscriber ON post.SubscriberID=subscriber.SubscriberID WHERE post.SubscriberID = " + SubscriberID;
+                string Query;
+
+                if (Scope.Equals("NewsFeed"))
+                {
+                    Query = "select PostID, post.SubscriberID, SubscriberName, ImagePresence, ImageAlbumID, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString, DisplayPicture from post INNER JOIN subscriber ON post.SubscriberID=subscriber.SubscriberID";
+                }
+                else
+                {
+                    Query = "select PostID, post.SubscriberID, SubscriberName, ImagePresence, ImageAlbumID, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString from post INNER JOIN subscriber ON post.SubscriberID=subscriber.SubscriberID WHERE post.SubscriberID = " + SubscriberID;
+                }
+                
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
                 List<Post> list = new List<Post>();
                 Post retrievedPost = new Post();
@@ -1324,6 +1390,25 @@ namespace FoodlingsWebAPI.Controllers
 
                         retrievedPost.CommentsCount = getCommentsCount(retrievedPost.PostID);
                         retrievedPost.LikesCount = getLikesCount(retrievedPost.PostID);
+
+                        if(retrievedPost.LikesCount != 0)
+                        {
+                            MySqlConnection likeConnection = new MySqlConnection(ConnectionString);
+                            likeConnection.Open();
+                            string likeQuery = "SELECT COUNT(*) FROM like_table WHERE SubscriberID = " + SubscriberID + " and PostID = " + retrievedPost.PostID;
+                            MySqlCommand likeCommand = new MySqlCommand(likeQuery, likeConnection);
+                            MySqlDataReader SelectLikeReader = likeCommand.ExecuteReader();
+                            while (SelectLikeReader.Read())
+                            {
+                                if (SelectLikeReader.HasRows)
+                                {
+                                    retrievedPost.CurrentUsersLike = Convert.ToInt32(SelectLikeReader.GetValue(0)) == 1 ? "Yes" : "No";
+                                }
+                            }
+                            likeConnection.Close();
+                        }
+
+                        retrievedPost.CurrentUsersLike = retrievedPost.CurrentUsersLike == null ? "No" : retrievedPost.CurrentUsersLike;
 
                         list.Add(retrievedPost);
 

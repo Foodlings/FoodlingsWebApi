@@ -21,5 +21,6 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public string ImageString { get; set; }
         public int CommentsCount { get; set; }
         public int LikesCount { get; set; }
+        public string CurrentUsersLike { get; set; }
     }
 }
