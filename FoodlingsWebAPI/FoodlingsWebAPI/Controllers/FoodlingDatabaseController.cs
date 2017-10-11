@@ -600,6 +600,51 @@ namespace FoodlingsWebAPI.Controllers
             return null;
         }
 
+        [HttpPost]
+        public IHttpActionResult searchSubscribers([FromBody] SearchResult srchResult)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = "SELECT * FROM subscriber where LOWER(SubscriberName) = '" + srchResult.Name.ToLower() + "'";
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+                MySqlDataReader SelectReader = getCommand.ExecuteReader();
+
+                SearchResult searchResult = new SearchResult();
+                List<SearchResult> list = new List<SearchResult>();
+
+                while (SelectReader.Read())
+                {
+                    if (SelectReader.HasRows)
+                    {
+                        searchResult.Name = (string)SelectReader.GetValue(1);
+                        searchResult.Email = (string)SelectReader.GetValue(4);
+                        try
+                        {
+                            searchResult.DisplayPicture = (string)SelectReader.GetValue(10);
+                        }
+                        catch (Exception e)
+                        {
+                            searchResult.DisplayPicture = "none";
+                        }
+
+                        list.Add(searchResult);
+                        searchResult = new SearchResult();
+                    }
+                }
+                
+                Connection.Close();
+
+                return Ok(new { SearchResult = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+
+            return null;
+        }
+
 
         [HttpPost]
         public IHttpActionResult updateSubscriber(int ID, string SubscriberName, string Password, string Type, string Email, int DisplayPictureID, string PhoneNumber, string Bio, string Gender, string DoB)

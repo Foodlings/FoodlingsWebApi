@@ -234,6 +234,7 @@
     <Compile Include="Models\Database Model\Post.cs" />
     <Compile Include="Models\Database Model\RestaurantProfile.cs" />
     <Compile Include="Models\Database Model\Review.cs" />
+    <Compile Include="Models\Database Model\SearchResult.cs" />
     <Compile Include="Models\Database Model\Subscriber.cs" />
     <Compile Include="Models\Database Model\Tag.cs" />
     <Compile Include="Models\IdentityModels.cs" />
