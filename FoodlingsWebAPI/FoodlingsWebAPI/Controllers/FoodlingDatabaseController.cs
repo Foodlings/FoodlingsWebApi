@@ -618,7 +618,9 @@ namespace FoodlingsWebAPI.Controllers
                 {
                     if (SelectReader.HasRows)
                     {
+                        searchResult.SubscriberID = (int)SelectReader.GetValue(0);
                         searchResult.Name = (string)SelectReader.GetValue(1);
+                        searchResult.Type = (string)SelectReader.GetValue(3);
                         searchResult.Email = (string)SelectReader.GetValue(4);
                         try
                         {
