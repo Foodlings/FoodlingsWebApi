@@ -1441,7 +1441,7 @@ namespace FoodlingsWebAPI.Controllers
                 }
                 else
                 {
-                    Query = "select PostID, post.SubscriberID, SubscriberName, ImagePresence, ImageAlbumID, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString from post INNER JOIN subscriber ON post.SubscriberID=subscriber.SubscriberID WHERE MenuPresence <> 1 and post.SubscriberID = " + SubscriberID;
+                    Query = "select PostID, post.SubscriberID, SubscriberName, ImagePresence, ImageAlbumID, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString, DisplayPicture from post INNER JOIN subscriber ON post.SubscriberID=subscriber.SubscriberID WHERE MenuPresence <> 1 and post.SubscriberID = " + SubscriberID;
                 }
 
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
@@ -1520,6 +1520,59 @@ namespace FoodlingsWebAPI.Controllers
                         }
 
                         retrievedPost.CurrentUsersLike = retrievedPost.CurrentUsersLike == null ? "No" : retrievedPost.CurrentUsersLike;
+
+                        retrievedPost.Taste = "";
+                        retrievedPost.Ambience = "";
+                        retrievedPost.Service = "";
+                        retrievedPost.OrderTime = "";
+                        retrievedPost.Price = "";
+                        retrievedPost.RestaurantName = "";
+
+                        if (retrievedPost.ReviewPresence == 1)
+                        {
+                            MySqlConnection reviewConnection = new MySqlConnection(ConnectionString);
+                            reviewConnection.Open();
+                            string reviewQuery = "SELECT review.*, subscriber.SubscriberName FROM review INNER JOIN restaurantprofile ON review.RestaurantID=restaurantprofile.RestaurantID INNER JOIN subscriber ON subscriber.SubscriberID=restaurantprofile.SubscriberID  WHERE PostID = " + retrievedPost.PostID;
+                            MySqlCommand reviewCommand = new MySqlCommand(reviewQuery, reviewConnection);
+                            MySqlDataReader SelectReviewReader = reviewCommand.ExecuteReader();
+                            while (SelectReviewReader.Read())
+                            {
+                                if (SelectReviewReader.HasRows)
+                                {                                 
+                                    try
+                                    { retrievedPost.Taste = (string)SelectReviewReader.GetValue(6); }
+                                    catch (Exception ex)
+                                    { retrievedPost.Taste = ""; }
+
+                                    try
+                                    { retrievedPost.Ambience = (string)SelectReviewReader.GetValue(7); }
+                                    catch (Exception ex)
+                                    { retrievedPost.Ambience = ""; }
+
+                                    try
+                                    { retrievedPost.Service = (string)SelectReviewReader.GetValue(8); }
+                                    catch (Exception ex)
+                                    { retrievedPost.Service = ""; }
+
+                                    try
+                                    { retrievedPost.OrderTime = (string)SelectReviewReader.GetValue(9); }
+                                    catch (Exception ex)
+                                    { retrievedPost.OrderTime = ""; }
+
+                                    try
+                                    { retrievedPost.Price = (string)SelectReviewReader.GetValue(10); }
+                                    catch (Exception ex)
+                                    { retrievedPost.Price = ""; }
+
+                                    try
+                                    { retrievedPost.RestaurantName = (string)SelectReviewReader.GetValue(11); }
+                                    catch (Exception ex)
+                                    { retrievedPost.RestaurantName = ""; }
+                                }
+                            }
+                            reviewConnection.Close();
+                        }
+
 
                         list.Add(retrievedPost);
 

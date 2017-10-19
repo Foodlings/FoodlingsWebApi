@@ -23,5 +23,11 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public int LikesCount { get; set; }
         public string CurrentUsersLike { get; set; }
         public int MenuPresence { get; set; }
+        public string Taste { get; set; }
+        public string Ambience { get; set; }
+        public string Service { get; set; }
+        public string OrderTime { get; set; }
+        public string Price { get; set; }
+        public string RestaurantName { get; set; }
     }
 }
