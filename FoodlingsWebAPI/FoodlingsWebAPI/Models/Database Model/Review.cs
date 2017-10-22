@@ -20,5 +20,6 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public string Price { get; set; }
         public string SubscriberName { get; set; }
         public string DisplayPicture { get; set; }
+        public string RestaurantName { get; set; }
     }
 }

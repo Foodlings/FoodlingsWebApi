@@ -10,7 +10,6 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public int ListID { get; set; }
         public int SubscriberID { get; set; }
         public int FriendID { get; set; }
-
         public string Since { get; set; }
     }
 }

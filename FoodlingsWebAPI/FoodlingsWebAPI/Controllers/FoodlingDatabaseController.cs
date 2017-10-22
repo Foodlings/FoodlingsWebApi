@@ -786,27 +786,22 @@ namespace FoodlingsWebAPI.Controllers
 
         // Friend Table - CRUD Operations
         [HttpPost]
-        public IHttpActionResult createFriend(int ID, int SubscriberID, int FriendID, string Since)
+        public IHttpActionResult createFriend([FromBody] Friend friend)
         {
             try
             {
                 MySqlConnection Connection = new MySqlConnection(ConnectionString);
-
                 Connection.Open();
-
-                string Query = "INSERT INTO Friend VALUES(" + ID + "," + SubscriberID + "," + FriendID + ",'" + Since + "')";
-
+                string Query = "INSERT INTO Friend(SubscriberID, FriendID, Since) VALUES(" + friend.SubscriberID + "," + friend.FriendID + ",'" + friend.Since + "')";
                 MySqlCommand insertCommand = new MySqlCommand(Query, Connection);
-
                 insertCommand.ExecuteNonQuery();
-
                 Connection.Close();
 
                 Friend newFriend = new Friend();
-                newFriend.ListID = ID;
-                newFriend.SubscriberID = SubscriberID;
-                newFriend.FriendID = FriendID;
-                newFriend.Since = Since;
+                newFriend.ListID = 0;
+                newFriend.SubscriberID = friend.SubscriberID;
+                newFriend.FriendID = friend.FriendID;
+                newFriend.Since = friend.Since;
 
                 List<Friend> list = new List<Friend>();
                 list.Add(newFriend);
@@ -1195,6 +1190,41 @@ namespace FoodlingsWebAPI.Controllers
                             list.Add(retrievedPost);
                         }
 
+                        retrievedPost = new Post();
+                    }
+                }
+
+                Connection.Close();
+
+                return Ok(new { Post = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+            return null;
+        }
+
+        [HttpGet]
+        public IHttpActionResult getGallery(int SubscriberID)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = "select ImageString from post where ImageString <> 'none' and SubscriberID = " + SubscriberID;
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+                List<Post> list = new List<Post>();
+
+                Post retrievedPost = new Post();
+
+                MySqlDataReader SelectReader = getCommand.ExecuteReader();
+
+                while (SelectReader.Read())
+                {
+                    if (SelectReader.HasRows)
+                    {
+                        retrievedPost.ImageString = (string)SelectReader.GetValue(0);
+                        list.Add(retrievedPost);
                         retrievedPost = new Post();
                     }
                 }
@@ -2839,13 +2869,44 @@ namespace FoodlingsWebAPI.Controllers
 
 
         [HttpGet]
-        public IHttpActionResult getAllReviews(int RestaurantID)
+        public IHttpActionResult getAllReviews(int RestaurantID, int SubscriberID, string Scope)
         {
             try
             {
                 MySqlConnection Connection = new MySqlConnection(ConnectionString);
                 Connection.Open();
-                string Query = "select ReviewID, PostID, review.SubscriberID, RestaurantID, ReviewText, Timestamp, Taste, Ambience, Service, OrderTime, Price, SubscriberName, DisplayPicture from review INNER JOIN subscriber ON review.SubscriberID=subscriber.SubscriberID where RestaurantID = " + RestaurantID;
+
+                string Query;
+
+                if ((Scope.Equals("Restaurant")) && (SubscriberID>0))
+                {
+                    string resQuery = "select RestaurantID from restaurantprofile where SubscriberID = " + SubscriberID;
+                    MySqlCommand getResCommand = new MySqlCommand(resQuery, Connection);
+                    MySqlDataReader SelectResReader = getResCommand.ExecuteReader();
+                    while (SelectResReader.Read())
+                    {
+                        if (SelectResReader.HasRows)
+                        {
+                            try
+                            { RestaurantID = (int)SelectResReader.GetValue(0); }
+                            catch (Exception ex)
+                            { }
+                        }
+                    }
+                }
+
+                Connection.Close();
+                Connection.Open();
+
+                if ((Scope.Equals("Subscriber")) && (SubscriberID > 0))
+                {
+                    Query = "select ReviewID, PostID, review.SubscriberID, RestaurantID, ReviewText, Timestamp, Taste, Ambience, Service, OrderTime, Price, SubscriberName, DisplayPicture from review INNER JOIN subscriber ON review.SubscriberID=subscriber.SubscriberID where review.SubscriberID = " + SubscriberID;
+                }
+                else
+                {
+                    Query = "select ReviewID, PostID, review.SubscriberID, RestaurantID, ReviewText, Timestamp, Taste, Ambience, Service, OrderTime, Price, SubscriberName, DisplayPicture from review INNER JOIN subscriber ON review.SubscriberID=subscriber.SubscriberID where RestaurantID = " + RestaurantID;
+                }
+
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
                 List<Review> list = new List<Review>();
                 Review retrievedReview = new Review();
@@ -2918,6 +2979,23 @@ namespace FoodlingsWebAPI.Controllers
                         { retrievedReview.DisplayPicture = (string)SelectReader.GetValue(12); }
                         catch (Exception ex)
                         { retrievedReview.DisplayPicture = ""; }
+
+                        string resQuery = "SELECT SubscriberName FROM subscriber WHERE SubscriberID = (Select SubscriberID from restaurantprofile where RestaurantID = " + retrievedReview.RestaurantID +")";
+                        MySqlConnection resConnection = new MySqlConnection(ConnectionString);
+                        resConnection.Open();
+                        MySqlCommand getResCommand = new MySqlCommand(resQuery, resConnection);
+                        MySqlDataReader SelectResReader = getResCommand.ExecuteReader();
+                        while (SelectResReader.Read())
+                        {
+                            if (SelectResReader.HasRows)
+                            {
+                                try
+                                { retrievedReview.RestaurantName = (string)SelectResReader.GetValue(0); }
+                                catch (Exception ex)
+                                { }
+                            }
+                        }
+                        resConnection.Close();
 
                         list.Add(retrievedReview);
 
