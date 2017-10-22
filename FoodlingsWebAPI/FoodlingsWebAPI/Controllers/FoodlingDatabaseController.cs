@@ -660,16 +660,32 @@ namespace FoodlingsWebAPI.Controllers
                                 }
                             }
                         }
+                        else
+                        {
+                            MySqlConnection friendConnection = new MySqlConnection(ConnectionString);
+                            friendConnection.Open();
+                            string friendQuery = "SELECT COUNT(*) FROM Friend WHERE SubscriberID = " + srchResult.SubscriberID + " and FriendID = " + searchResult.SubscriberID;
+                            MySqlCommand friendCommand = new MySqlCommand(friendQuery, friendConnection);
+                            MySqlDataReader SelectFriendReader = friendCommand.ExecuteReader();
+                            while (SelectFriendReader.Read())
+                            {
+                                if (SelectFriendReader.HasRows)
+                                {
+                                    searchResult.FriendCheck = Convert.ToInt32(SelectFriendReader.GetValue(0)) == 1 ? "Friend" : "Not Friend";
+                                }
+                            }
+                            friendConnection.Close();
+                        }
 
                         list.Add(searchResult);
                         searchResult = new SearchResult();
                     }
                 }
 
-                    Connection.Close();
+                Connection.Close();
 
-                    return Ok(new { SearchResult = list.AsEnumerable().ToList() });
-                }
+                return Ok(new { SearchResult = list.AsEnumerable().ToList() });
+            }
             catch (Exception ex)
             { }
 
@@ -814,6 +830,35 @@ namespace FoodlingsWebAPI.Controllers
             return null;
         }
 
+        [HttpPost]
+        public IHttpActionResult deleteFriend([FromBody] Friend friend)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = "DELETE FROM Friend WHERE SubscriberID = " + friend.SubscriberID + " and FriendID = " + friend.FriendID;
+                MySqlCommand deleteCommand = new MySqlCommand(Query, Connection);
+                deleteCommand.ExecuteNonQuery();
+                Connection.Close();
+
+                Friend newFriend = new Friend();
+                newFriend.ListID = 0;
+                newFriend.SubscriberID = friend.SubscriberID;
+                newFriend.FriendID = friend.FriendID;
+                newFriend.Since = friend.Since;
+
+                List<Friend> list = new List<Friend>();
+                list.Add(newFriend);
+
+                return Ok(new { Friend = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+            return null;
+        }
+
 
         [HttpGet]
         public IHttpActionResult getFriend(int ID, string FriendName)
@@ -870,22 +915,16 @@ namespace FoodlingsWebAPI.Controllers
 
 
         [HttpGet]
-        public IHttpActionResult getAllFriends()
+        public IHttpActionResult getAllFriends(int SubscriberID)
         {
             try
             {
                 MySqlConnection Connection = new MySqlConnection(ConnectionString);
-
                 Connection.Open();
-
-                string Query = "SELECT * FROM friend";
-
+                string Query = "select friend.*, SubscriberName, DisplayPicture from Friend INNER JOIN subscriber ON friend.FriendID=subscriber.SubscriberID where friend.SubscriberID = " + SubscriberID;
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
-
                 List<Friend> list = new List<Friend>();
-
                 Friend retrievedFriend = new Friend();
-
                 MySqlDataReader SelectReader = getCommand.ExecuteReader();
 
                 while (SelectReader.Read())
@@ -896,6 +935,8 @@ namespace FoodlingsWebAPI.Controllers
                         retrievedFriend.SubscriberID = (int)SelectReader.GetValue(1);
                         retrievedFriend.FriendID = (int)SelectReader.GetValue(2);
                         retrievedFriend.Since = (string)SelectReader.GetValue(3);
+                        retrievedFriend.SubscriberName = (string)SelectReader.GetValue(4);
+                        retrievedFriend.DisplayPicture = (string)SelectReader.GetValue(5);
 
                         list.Add(retrievedFriend);
 
@@ -1568,7 +1609,7 @@ namespace FoodlingsWebAPI.Controllers
                             while (SelectReviewReader.Read())
                             {
                                 if (SelectReviewReader.HasRows)
-                                {                                 
+                                {
                                     try
                                     { retrievedPost.Taste = (string)SelectReviewReader.GetValue(6); }
                                     catch (Exception ex)
@@ -2855,7 +2896,7 @@ namespace FoodlingsWebAPI.Controllers
 
                         list.Add(retrievedReview);
                     }
-                }           
+                }
 
                 Connection.Close();
 
@@ -2878,7 +2919,7 @@ namespace FoodlingsWebAPI.Controllers
 
                 string Query;
 
-                if ((Scope.Equals("Restaurant")) && (SubscriberID>0))
+                if ((Scope.Equals("Restaurant")) && (SubscriberID > 0))
                 {
                     string resQuery = "select RestaurantID from restaurantprofile where SubscriberID = " + SubscriberID;
                     MySqlCommand getResCommand = new MySqlCommand(resQuery, Connection);
@@ -2980,7 +3021,7 @@ namespace FoodlingsWebAPI.Controllers
                         catch (Exception ex)
                         { retrievedReview.DisplayPicture = ""; }
 
-                        string resQuery = "SELECT SubscriberName FROM subscriber WHERE SubscriberID = (Select SubscriberID from restaurantprofile where RestaurantID = " + retrievedReview.RestaurantID +")";
+                        string resQuery = "SELECT SubscriberName FROM subscriber WHERE SubscriberID = (Select SubscriberID from restaurantprofile where RestaurantID = " + retrievedReview.RestaurantID + ")";
                         MySqlConnection resConnection = new MySqlConnection(ConnectionString);
                         resConnection.Open();
                         MySqlCommand getResCommand = new MySqlCommand(resQuery, resConnection);

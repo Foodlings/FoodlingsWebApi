@@ -11,5 +11,7 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public int SubscriberID { get; set; }
         public int FriendID { get; set; }
         public string Since { get; set; }
+        public string SubscriberName { get; set; }
+        public string DisplayPicture { get; set; }
     }
 }
