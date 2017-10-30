@@ -693,6 +693,95 @@ namespace FoodlingsWebAPI.Controllers
             return null;
         }
 
+        [HttpPost]
+        public IHttpActionResult searchRestaurantsByCategory([FromBody] SearchResult srchResult)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = "Select * from subscriber where SubscriberID IN (SELECT SubscriberID FROM restaurantprofile WHERE Category LIKE '%" + srchResult.Name +"%')";
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+                MySqlDataReader SelectReader = getCommand.ExecuteReader();
+
+                SearchResult searchResult = new SearchResult();
+                List<SearchResult> list = new List<SearchResult>();
+
+                while (SelectReader.Read())
+                {
+                    if (SelectReader.HasRows)
+                    {
+                        searchResult.SubscriberID = (int)SelectReader.GetValue(0);
+                        searchResult.Name = (string)SelectReader.GetValue(1);
+                        searchResult.Type = (string)SelectReader.GetValue(3);
+                        searchResult.Email = (string)SelectReader.GetValue(4);
+                        try
+                        {
+                            searchResult.DisplayPicture = (string)SelectReader.GetValue(10);
+                        }
+                        catch (Exception e)
+                        {
+                            searchResult.DisplayPicture = "none";
+                        }
+
+                        searchResult.RestaurantID = 0;
+
+                        if (searchResult.Type.Equals("Restaurant"))
+                        {
+                            MySqlConnection restaurantConnection = new MySqlConnection(ConnectionString);
+                            restaurantConnection.Open();
+                            string resQuery = "SELECT * FROM restaurantprofile WHERE SubscriberID = " + searchResult.SubscriberID;
+                            MySqlCommand resCommand = new MySqlCommand(resQuery, restaurantConnection);
+
+                            using (MySqlDataReader resReader = resCommand.ExecuteReader())
+                            {
+                                if (resReader.HasRows && resReader.Read())
+                                {
+                                    int counter = 1;
+
+                                    for (int i = 0; i < resReader.FieldCount; i++)
+                                    {
+                                        if (counter == 1)
+                                        { searchResult.RestaurantID = (int)resReader.GetValue(i); break; }
+
+                                        counter++;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            MySqlConnection friendConnection = new MySqlConnection(ConnectionString);
+                            friendConnection.Open();
+                            string friendQuery = "SELECT COUNT(*) FROM Friend WHERE SubscriberID = " + srchResult.SubscriberID + " and FriendID = " + searchResult.SubscriberID;
+                            MySqlCommand friendCommand = new MySqlCommand(friendQuery, friendConnection);
+                            MySqlDataReader SelectFriendReader = friendCommand.ExecuteReader();
+                            while (SelectFriendReader.Read())
+                            {
+                                if (SelectFriendReader.HasRows)
+                                {
+                                    searchResult.FriendCheck = Convert.ToInt32(SelectFriendReader.GetValue(0)) == 1 ? "Friend" : "Not Friend";
+                                }
+                            }
+                            friendConnection.Close();
+                        }
+
+                        list.Add(searchResult);
+                        searchResult = new SearchResult();
+                    }
+                }
+
+                Connection.Close();
+
+                return Ok(new { SearchResult = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+
+            return null;
+        }
+
 
         [HttpPost]
         public IHttpActionResult updateSubscriber(int ID, string SubscriberName, string Password, string Type, string Email, int DisplayPictureID, string PhoneNumber, string Bio, string Gender, string DoB)
