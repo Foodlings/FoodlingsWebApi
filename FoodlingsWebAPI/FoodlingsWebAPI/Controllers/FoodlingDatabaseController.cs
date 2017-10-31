@@ -611,7 +611,7 @@ namespace FoodlingsWebAPI.Controllers
             {
                 MySqlConnection Connection = new MySqlConnection(ConnectionString);
                 Connection.Open();
-                string Query = "SELECT * FROM subscriber where LOWER(SubscriberName) = '" + srchResult.Name.ToLower() + "'";
+                string Query = "SELECT * FROM subscriber where SubscriberName LIKE '%" + srchResult.Name + "%'";
                 MySqlCommand getCommand = new MySqlCommand(Query, Connection);
                 MySqlDataReader SelectReader = getCommand.ExecuteReader();
 
@@ -678,6 +678,95 @@ namespace FoodlingsWebAPI.Controllers
                         }
 
                         list.Add(searchResult);
+                        searchResult = new SearchResult();
+                    }
+                }
+
+                Connection.Close();
+
+                return Ok(new { SearchResult = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+
+            return null;
+        }
+
+        [HttpPost]
+        public IHttpActionResult searchRestaurants([FromBody] SearchResult srchResult)
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = "SELECT * FROM subscriber where SubscriberName LIKE '%" + srchResult.Name + "%'";
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+                MySqlDataReader SelectReader = getCommand.ExecuteReader();
+
+                SearchResult searchResult = new SearchResult();
+                List<SearchResult> list = new List<SearchResult>();
+
+                while (SelectReader.Read())
+                {
+                    if (SelectReader.HasRows)
+                    {
+                        searchResult.SubscriberID = (int)SelectReader.GetValue(0);
+                        searchResult.Name = (string)SelectReader.GetValue(1);
+                        searchResult.Type = (string)SelectReader.GetValue(3);
+                        searchResult.Email = (string)SelectReader.GetValue(4);
+                        try
+                        {
+                            searchResult.DisplayPicture = (string)SelectReader.GetValue(10);
+                        }
+                        catch (Exception e)
+                        {
+                            searchResult.DisplayPicture = "none";
+                        }
+
+                        searchResult.RestaurantID = 0;
+
+                        if (searchResult.Type.Equals("Restaurant"))
+                        {
+                            MySqlConnection restaurantConnection = new MySqlConnection(ConnectionString);
+                            restaurantConnection.Open();
+                            string resQuery = "SELECT * FROM restaurantprofile WHERE SubscriberID = " + searchResult.SubscriberID;
+                            MySqlCommand resCommand = new MySqlCommand(resQuery, restaurantConnection);
+
+                            using (MySqlDataReader resReader = resCommand.ExecuteReader())
+                            {
+                                if (resReader.HasRows && resReader.Read())
+                                {
+                                    int counter = 1;
+
+                                    for (int i = 0; i < resReader.FieldCount; i++)
+                                    {
+                                        if (counter == 1)
+                                        { searchResult.RestaurantID = (int)resReader.GetValue(i); break; }
+
+                                        counter++;
+                                    }
+                                }
+                            }
+                            list.Add(searchResult);
+                        }
+                        else
+                        {
+                            MySqlConnection friendConnection = new MySqlConnection(ConnectionString);
+                            friendConnection.Open();
+                            string friendQuery = "SELECT COUNT(*) FROM Friend WHERE SubscriberID = " + srchResult.SubscriberID + " and FriendID = " + searchResult.SubscriberID;
+                            MySqlCommand friendCommand = new MySqlCommand(friendQuery, friendConnection);
+                            MySqlDataReader SelectFriendReader = friendCommand.ExecuteReader();
+                            while (SelectFriendReader.Read())
+                            {
+                                if (SelectFriendReader.HasRows)
+                                {
+                                    searchResult.FriendCheck = Convert.ToInt32(SelectFriendReader.GetValue(0)) == 1 ? "Friend" : "Not Friend";
+                                }
+                            }
+                            friendConnection.Close();
+                        }
+
                         searchResult = new SearchResult();
                     }
                 }
@@ -3136,6 +3225,144 @@ namespace FoodlingsWebAPI.Controllers
                 Connection.Close();
 
                 return Ok(new { Review = list.AsEnumerable().ToList() });
+            }
+            catch (Exception ex)
+            { }
+
+            return null;
+        }
+
+        [HttpGet]
+        public IHttpActionResult getAllReviewsForCoummunity()
+        {
+            try
+            {
+                MySqlConnection Connection = new MySqlConnection(ConnectionString);
+                Connection.Open();
+                string Query = "select PostID, post.SubscriberID, SubscriberName, ImagePresence, ImageAlbumID, ReviewPresence, CheckinPresence, Privacy, Timestamp, PostDescription, ImageString, DisplayPicture from post INNER JOIN subscriber ON post.SubscriberID=subscriber.SubscriberID WHERE ReviewPresence = 1";
+                
+                MySqlCommand getCommand = new MySqlCommand(Query, Connection);
+                List<Post> list = new List<Post>();
+                Post retrievedPost = new Post();
+                MySqlDataReader SelectReader = getCommand.ExecuteReader();
+                while (SelectReader.Read())
+                {
+                    if (SelectReader.HasRows)
+                    {
+                        retrievedPost.PostID = (int)SelectReader.GetValue(0);
+                        retrievedPost.SubscriberID = (int)SelectReader.GetValue(1);
+                        retrievedPost.SubscriberName = (string)SelectReader.GetValue(2);
+                        retrievedPost.ImagePresence = (int)SelectReader.GetValue(3);
+
+                        try
+                        {
+                            retrievedPost.ImageAlbumID = (int)SelectReader.GetValue(4);
+                        }
+                        catch (Exception e)
+                        {
+                            retrievedPost.ImageAlbumID = 1000;
+                        }
+
+                        retrievedPost.ReviewPresence = (int)SelectReader.GetValue(5);
+                        retrievedPost.CheckinPresence = (int)SelectReader.GetValue(6);
+                        retrievedPost.Privacy = (string)SelectReader.GetValue(7);
+                        retrievedPost.TimeStamp = (string)SelectReader.GetValue(8);
+                        retrievedPost.PostDescription = (string)SelectReader.GetValue(9);
+
+                        try
+                        {
+                            retrievedPost.ImageString = (string)SelectReader.GetValue(10);
+                        }
+                        catch (Exception e)
+                        {
+                            retrievedPost.ImageString = "none";
+                        }
+
+                        try
+                        {
+                            retrievedPost.DisplayPicture = (string)SelectReader.GetValue(11);
+                        }
+                        catch (Exception e)
+                        {
+                            retrievedPost.DisplayPicture = "none";
+                        }
+
+                        try
+                        {
+                            retrievedPost.MenuPresence = (int)SelectReader.GetValue(12);
+                        }
+                        catch (Exception e)
+                        {
+                            retrievedPost.MenuPresence = 0;
+                        }
+
+                        retrievedPost.CommentsCount = getCommentsCount(retrievedPost.PostID);
+                        retrievedPost.LikesCount = getLikesCount(retrievedPost.PostID);
+
+                        retrievedPost.CurrentUsersLike = "No";
+
+                        retrievedPost.Taste = "";
+                        retrievedPost.Ambience = "";
+                        retrievedPost.Service = "";
+                        retrievedPost.OrderTime = "";
+                        retrievedPost.Price = "";
+                        retrievedPost.RestaurantName = "";
+
+                        if (retrievedPost.ReviewPresence == 1)
+                        {
+                            MySqlConnection reviewConnection = new MySqlConnection(ConnectionString);
+                            reviewConnection.Open();
+                            string reviewQuery = "SELECT review.*, subscriber.SubscriberName FROM review INNER JOIN restaurantprofile ON review.RestaurantID=restaurantprofile.RestaurantID INNER JOIN subscriber ON subscriber.SubscriberID=restaurantprofile.SubscriberID  WHERE PostID = " + retrievedPost.PostID;
+                            MySqlCommand reviewCommand = new MySqlCommand(reviewQuery, reviewConnection);
+                            MySqlDataReader SelectReviewReader = reviewCommand.ExecuteReader();
+                            while (SelectReviewReader.Read())
+                            {
+                                if (SelectReviewReader.HasRows)
+                                {
+                                    try
+                                    { retrievedPost.Taste = (string)SelectReviewReader.GetValue(6); }
+                                    catch (Exception ex)
+                                    { retrievedPost.Taste = ""; }
+
+                                    try
+                                    { retrievedPost.Ambience = (string)SelectReviewReader.GetValue(7); }
+                                    catch (Exception ex)
+                                    { retrievedPost.Ambience = ""; }
+
+                                    try
+                                    { retrievedPost.Service = (string)SelectReviewReader.GetValue(8); }
+                                    catch (Exception ex)
+                                    { retrievedPost.Service = ""; }
+
+                                    try
+                                    { retrievedPost.OrderTime = (string)SelectReviewReader.GetValue(9); }
+                                    catch (Exception ex)
+                                    { retrievedPost.OrderTime = ""; }
+
+                                    try
+                                    { retrievedPost.Price = (string)SelectReviewReader.GetValue(10); }
+                                    catch (Exception ex)
+                                    { retrievedPost.Price = ""; }
+
+                                    try
+                                    { retrievedPost.RestaurantName = (string)SelectReviewReader.GetValue(11); }
+                                    catch (Exception ex)
+                                    { retrievedPost.RestaurantName = ""; }
+                                }
+                            }
+                            reviewConnection.Close();
+                        }
+
+
+                        list.Add(retrievedPost);
+
+                        retrievedPost = new Post();
+                    }
+                }
+
+                Connection.Close();
+
+                return Ok(new { Post = list.AsEnumerable().ToList() });
             }
             catch (Exception ex)
             { }
