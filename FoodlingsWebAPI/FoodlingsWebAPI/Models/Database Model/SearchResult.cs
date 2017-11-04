@@ -14,5 +14,7 @@ namespace FoodlingsWebAPI.Models.Database_Model
         public string Email { set; get; }
         public string DisplayPicture { set; get; }
         public string FriendCheck { set; get; }
+        public int ReviewsCount { set; get; }
+        public string Scope { set; get; }
     }
 }

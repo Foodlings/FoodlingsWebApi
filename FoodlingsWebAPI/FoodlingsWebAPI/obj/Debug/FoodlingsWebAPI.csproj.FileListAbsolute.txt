@@ -14,6 +14,7 @@ C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\FoodlingsWebAPI.dll
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\FoodlingsWebAPI.pdb
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\Antlr3.Runtime.dll
+C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\CloudinaryDotNet.dll
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\EntityFramework.dll
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\EntityFramework.SqlServer.dll
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\Microsoft.AspNet.Identity.Core.dll
@@ -73,7 +74,6 @@ C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\Microsoft.Owin.Security.Twitter.xml
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\Microsoft.Owin.Security.MicrosoftAccount.xml
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\System.Web.Http.Owin.xml
+C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\obj\Debug\FoodlingsWebAPI.csprojResolveAssemblyReference.cache
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\obj\Debug\FoodlingsWebAPI.dll
 C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\obj\Debug\FoodlingsWebAPI.pdb
-C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\bin\CloudinaryDotNet.dll
-C:\Users\Sheharyar Arif\Desktop\FoodlingsWebAPI\FoodlingsWebAPI\FoodlingsWebAPI\obj\Debug\FoodlingsWebAPI.csprojResolveAssemblyReference.cache
